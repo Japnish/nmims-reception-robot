@@ -5,9 +5,7 @@ import google.generativeai as genai
 app = Flask(__name__)
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-for m in genai.list_models():
-    if "generateContent" in m.supported_generation_methods:
-        print(m.name)
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 @app.route("/")
 def home():
