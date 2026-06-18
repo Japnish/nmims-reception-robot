@@ -1,29 +1,30 @@
 from flask import Flask, request, jsonify
+import os
+import google.generativeai as genai
 
 app = Flask(__name__)
 
-@app.route('/ask')
-def ask():
-    question = request.args.get("q", "").lower()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-    if "hello" in question:
-        answer = "Hello! Welcome to NMIMS."
+@app.route("/")
+def home():
+    return "NMIMS Reception Robot Backend Running"
 
-    elif "dean" in question:
-        answer = "The dean office is on the second floor."
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    user_message = data.get("message", "")
 
-    elif "library" in question:
-        answer = "The library is in Block B."
+    if not user_message:
+        return jsonify({"reply": "Please ask something."})
 
-    elif "who are you" in question:
-        answer = "I am the reception assistant of NMIMS."
+    try:
+        response = model.generate_content(user_message)
+        return jsonify({"reply": response.text})
 
-    else:
-        answer = "Sorry, I do not know the answer."
-
-    return jsonify({
-        "reply": answer
-    })
+    except Exception as e:
+        return jsonify({"reply": f"Error: {str(e)}"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run()
